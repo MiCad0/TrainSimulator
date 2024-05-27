@@ -1,2 +1,2 @@
 # TrainSimulator
- Simulateur de train en JavaScript
+ Simulateur de trains en JavaScript
