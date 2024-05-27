@@ -99,6 +99,7 @@ let currentCase = null;
 let plateau;
 let contexte = document.getElementById('simulateur').getContext("2d");
 let playing;
+const TickRate = 1000;
 
 
 /************************************************************/
@@ -224,7 +225,7 @@ function selectionnerCase(event){
 			clearInterval(playing);
 		}else{
 			event.target.textContent = "Pause";
-			playing = setInterval(tick, 1000);
+			playing = setInterval(tick, TickRate);
 		}
 	}
 	if(currentCase !== null){
@@ -259,12 +260,13 @@ function selectionnerCase(event){
 function poserTrain(x, y, plateau, train){
 	switch(plateau.cases[x][y]){
 		case Type_de_case.Rail_horizontal:
-			for(let i = 0; i < train.nbWagon; i++){
+			for(let i = 0; i <= train.nbWagon; i++){
 				if(x-i < 0){
 					console.log("Impossible de poser le train ici");
 					return;
 				}
-				if(plateau.cases[x-i][y] !== Type_de_case.Rail_horizontal || plateau.trains[[x-i,y]] !== undefined){
+				console.log(plateau.cases[x-i][y]);
+				if((plateau.cases[x-i][y] !== Type_de_case.Rail_horizontal) || (plateau.trains[[x-i,y]] !== undefined)){
 					console.log("Impossible de poser le train ici");
 					return;
 				}
@@ -356,6 +358,10 @@ function tick(){
 					if(train.vector[0] === 1){
 						coord = [0,-1];
 					}
+					else if(train.vector[0] === -1 || train.vector[1] === -1){
+						exploserTrain(train);
+						return;
+					}
 					else{
 						coord = [-1,0];
 					}
@@ -363,6 +369,10 @@ function tick(){
 				case "rail haut vers droite":
 					if(train.vector[0] === -1){
 						coord = [0,1];
+					}
+					else if(train.vector[0] === 1 || train.vector[1] === 1){
+						exploserTrain(train);
+						return;
 					}
 					else{
 						coord = [1,0];
@@ -372,6 +382,10 @@ function tick(){
 					if(train.vector[0] === 1){
 						coord = [0,1];
 					}
+					else if(train.vector[0] === -1 || train.vector[1] === 1){
+						exploserTrain(train);
+						return;
+					}
 					else{
 						coord = [-1,0];
 					}
@@ -379,6 +393,10 @@ function tick(){
 				case "rail bas vers droite":
 					if(train.vector[0] === -1){
 						coord = [0,-1];
+					}
+					else if(train.vector[0] === 1 || train.vector[1] === -1){
+						exploserTrain(train);
+						return;
 					}
 					else{
 						coord = [1,0];
@@ -392,26 +410,37 @@ function tick(){
 					break;
 				default:
 					exploserTrain(train);
+					return;
 			}
 			train.vector = [coord[0], coord[1]];
 			console.log(coord);
 			console.log(tmp);
-			train.avancer(train.x + coord[0], train.y + coord[1]);
-			dessinerTrain(plateau, train.x, train.y);
+			if(train.x + coord[0] < 0 || train.y + coord[1] < 0 || train.x + coord[0] >= plateau.largeur || train.y + coord[1] >= plateau.hauteur){
+				console.log("Boom");
+				exploserTrain(train);
+			}else{
+				train.avancer(train.x + coord[0], train.y + coord[1]);
+				dessinerTrain(plateau, train.x, train.y);
+			}
 		}
 	});
 }
 
 function start(){
-	playing = setInterval(tick, 1000);
+	playing = setInterval(tick, TickRate);
 }
 
 
 function exploserTrain(train){
-	let tmp = train;
-	if(tmp.nbWagon > 0)
-		exploserTrain(tmp.next);
-	plateau.trains[[tmp.x, tmp.y]] = undefined;
+	if(train.nbWagon > 0){
+		exploserTrain(train.next);
+	}
+	if(train.isLoco){
+		plateau.trains[[train.x + train.vector[0], train.y + train.vector[1]]] = undefined;
+	}
+	dessine_case(contexte, plateau, train.x, train.y);
+	plateau.trains[[train.x, train.y]] = undefined;
+	train.next = undefined;
 	train = undefined;
 }
 
@@ -528,6 +557,18 @@ function cree_plateau_initial(plateau){
 	plateau.cases[21][13] = Type_de_case.Eau;
 }
 
+function autreplateau(plateau){
+	for(let i = 0; i < plateau.largeur; i++){
+		for(let j = 0; j < plateau.hauteur; j++){
+			if(i === 0){
+				plateau.cases[i][j] = j%2 === 0 ? Type_de_case.Rail_haut_vers_droite : Type_de_case.Rail_haut_vers_gauche;
+			}
+			else{
+				plateau.cases[i][j] = Type_de_case.Rail_horizontal;
+			}
+		}
+	}
+}
 
 /************************************************************/
 // Fonction principale
