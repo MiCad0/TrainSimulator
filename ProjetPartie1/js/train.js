@@ -134,7 +134,10 @@ class Plateau{
 	}
 }
 
-// TODO : d'autres classes si besoin
+
+/*------------------------------------------------------------*/
+// Train
+/*------------------------------------------------------------*/
 
 class Train{
 	constructor(nbWagon, isLoco){
