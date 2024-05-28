@@ -99,7 +99,7 @@ let currentCase = null;
 let plateau;
 let contexte = document.getElementById('simulateur').getContext("2d");
 let playing;
-const TickRate = 1000;
+let TickRate = 1000;
 
 
 /************************************************************/
