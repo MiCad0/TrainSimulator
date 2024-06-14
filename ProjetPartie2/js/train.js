@@ -197,8 +197,11 @@ function dessine_case(contexte, plateau, x, y){
 	// NOTE: à améliorer
 
 	let image_a_afficher = image_of_case(la_case);
+	
+	const realx = (y - x) * LARGEUR_CASE + (LARGEUR_PLATEAU * LARGEUR_CASE) / 2;
+	const realy = (y + x) * HAUTEUR_CASE / 2;
 	// Affiche l'image concernée
-	contexte.drawImage(image_a_afficher, x * LARGEUR_CASE, y * HAUTEUR_CASE, LARGEUR_CASE, HAUTEUR_CASE);
+	contexte.drawImage(image_a_afficher, realx, realy, LARGEUR_CASE, HAUTEUR_CASE);
 }
 
 function dessine_plateau(page, plateau){

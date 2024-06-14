@@ -127,11 +127,11 @@ class Plateau{
 				this.cases[x][y] = Type_de_case.Foret;
 			}
 		}
-		this.trains = {};
+		this.trains = [];
 	}
 
 	ajouterTrain(x, y, train){
-		this.trains[[x,y]] = train;
+		this.trains.push(train);
 	}
 }
 
@@ -164,8 +164,6 @@ class Train{
 		this.oldY = this.y;
 		this.x = x;
 		this.y = y;
-		plateau.trains[[this.oldX, this.oldY]] = undefined;
-		plateau.trains[[this.x, this.y]] = this;
 		if(this.nbWagon > 0){
 			this.next.avancer(this.oldX, this.oldY);
 		}
@@ -274,14 +272,14 @@ function poserTrain(x, y, plateau, train){
 			train.x = x;
 			train.y = y;
 			plateau.ajouterTrain(x, y, train);
-			dessinerTrain(plateau, x, y);
+			dessinerTrain(plateau, train);
 			let tempTrain = train;
 			while(tempTrain.nbWagon > 0){
 				tempTrain = tempTrain.next;
 				plateau.ajouterTrain(--x, y, tempTrain);
 				tempTrain.x = x;
 				tempTrain.y = y;
-				dessinerTrain(plateau, x, y);
+				dessinerTrain(plateau, tempTrain);
 			}
 			break;
 		default:
@@ -289,14 +287,23 @@ function poserTrain(x, y, plateau, train){
 	}
 }
 
-function dessinerTrain(plateau, x, y){
-	let train = plateau.trains[[x,y]];
+function dessinerTrain(plateau, train){
+	let x = train.x;
+	let y = train.y;
 	contexte.drawImage(train.image, x * LARGEUR_CASE, y * HAUTEUR_CASE, LARGEUR_CASE, HAUTEUR_CASE);
-	dessine_case(contexte, plateau, train.oldX, train.oldY);
-	while(train.nbWagon > 0){
-		train = train.next;
-		contexte.drawImage(train.image, train.x * LARGEUR_CASE, train.y * HAUTEUR_CASE, LARGEUR_CASE, HAUTEUR_CASE);
+	let nbTchou = 0;
+	plateau.trains.forEach((tchou) => {
+		if(tchou !== undefined && tchou.x === train.oldX && tchou.y === train.oldY){
+			nbTchou++;
+			return;
+		}
+	});
+	if(nbTchou === 0){
 		dessine_case(contexte, plateau, train.oldX, train.oldY);
+	}
+	if(train.nbWagon > 0){
+		contexte.drawImage(train.next.image, train.next.x * LARGEUR_CASE, train.next.y * HAUTEUR_CASE, LARGEUR_CASE, HAUTEUR_CASE);
+		dessine_case(contexte, plateau, train.next.oldX, train.next.oldY);
 	}
 }
 
@@ -420,7 +427,7 @@ function tick(){
 				exploserTrain(train);
 			}else{
 				train.avancer(train.x + coord[0], train.y + coord[1]);
-				dessinerTrain(plateau, train.x, train.y);
+				dessinerTrain(plateau, train);
 			}
 		}
 	});
@@ -436,10 +443,9 @@ function exploserTrain(train){
 		exploserTrain(train.next);
 	}
 	if(train.isLoco){
-		plateau.trains[[train.x + train.vector[0], train.y + train.vector[1]]] = undefined;
+		plateau.trains.indexOf(train) = undefined;
 	}
 	dessine_case(contexte, plateau, train.x, train.y);
-	plateau.trains[[train.x, train.y]] = undefined;
 	train.next = undefined;
 	train = undefined;
 }
