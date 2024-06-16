@@ -5,9 +5,9 @@ const canvas = document.getElementById("simulateur");
 const ctx = canvas.getContext("2d");
 
 // Définir la taille de la matrice
-
+let dispersion = 16;
 let step = 1;
-const size = 2;
+const size = 7;
 const matrixWidth = 2**(size) + 1;
 const matrixHeight = 2**(size) + 1;
 
@@ -33,9 +33,9 @@ const HALFROCK = 14;
 const LIGHTSNOW = 15;
 const SNOW = 16;
 
-const randomRange = [0,size];
+const randomRange = [-4,4];
 current_range_random = randomRange;
-const shrinkCoef = 0.8;
+const shrinkCoef = 0.5;
 
 
 
@@ -61,9 +61,9 @@ function getRandomHeight() {
 }
 
 // Fonction pour baisser le coefficient de réduction
-function shrinkRangeRandom() {
-    current_range_random[0] = current_range_random[0] * shrinkCoef;
-    current_range_random[1] = current_range_random[1] * shrinkCoef;
+function shrinkRangeRandom(size) {
+    current_range_random[0] = -dispersion * size/matrixHeight;
+    current_range_random[1] = dispersion * size/matrixHeight;
 }
 
 
@@ -71,7 +71,7 @@ function shrinkRangeRandom() {
 function drawMatrix() {
     for (let i = 0; i < matrixHeight; i++) {
         for (let j = 0; j < matrixWidth; j++) {
-			console.log(i,j,matrix[i][j]);
+            matrix[i][j] = Math.round(matrix[i][j], 1, 16);
             switch (matrix[i][j]) {
                 case ABYSS:
                     ctx.fillStyle = "midnightblue";
@@ -80,13 +80,13 @@ function drawMatrix() {
                     ctx.fillStyle = "darkblue";
                     break;
                 case WATER:
-                    ctx.fillStyle = "blue";
+                    ctx.fillStyle = "#0033ff";
                     break;
                 case HALFWATER:
-                    ctx.fillStyle = "lightblue";
+                    ctx.fillStyle = "#0055ff";
                     break;
                 case PUDDLE:
-                    ctx.fillStyle = "cyan";
+                    ctx.fillStyle = "#0056a9";
                     break;
                 case SAND:
                     ctx.fillStyle = "yellow";
@@ -95,10 +95,10 @@ function drawMatrix() {
                     ctx.fillStyle = "orange";
                     break;
                 case DIRT:
-                    ctx.fillStyle = "brown";
+                    ctx.fillStyle = "#744700";
                     break;
                 case DARKDIRT:
-                    ctx.fillStyle = "darkbrown";
+                    ctx.fillStyle = "#53380f";
                     break;
                 case GRASS:
                     ctx.fillStyle = "green";
@@ -161,7 +161,7 @@ function getMousePos(canvas, evt) {
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawMatrix();
-    drawmatrix();
+    //drawmatrix();
 }
 
 
@@ -176,16 +176,15 @@ canvas.addEventListener("click", function (evt) {
 // Fonction diamondSquare pour générer un terrain
 
 function diamondSquare(x, y, size) {
-	console.log(x,y,size);
 	square(x,y,size);
     diamond(x,y,size);
-    shrinkRangeRandom();
-    if (size > 1) {
-		console.log("diving");
+    shrinkRangeRandom(size);
+	step++;
+    if (size > 4) {
         diamondSquare(x,y,(size+1)/2);
-        diamondSquare(x + (size+1)/2,y,(size+1)/2);
-        diamondSquare(x,y + (size+1)/2,(size+1)/2);
-        diamondSquare(x + (size+1)/2, y + (size+1)/2,(size+1)/2);
+        diamondSquare(x + (size+1)/2 -1,y,(size+1)/2);
+        diamondSquare(x,y + (size+1)/2 -1,(size+1)/2);
+        diamondSquare(x + (size+1)/2 -1, y + (size+1)/2 - 1,(size+1)/2);
     }
 }
 
@@ -193,49 +192,60 @@ function diamondSquare(x, y, size) {
 function square(topX, topY, size) {
     let rd = getRdm();
     let index = {};
-    index.x = Math.floor((size)  / 2 + topX);
-    index.y = Math.floor((size)  / 2 + topY);
-	console.log("index",topX,topY, matrix[topX][topY]);
-    matrix[index.x][index.y] = clamp(Math.floor(calculateAverage([
+    index.x = topX + (size-1)/2;
+    index.y = topY + (size-1)/2;
+
+    size = size - 1;
+    matrix[index.x][index.y] = clamp(calculateAverage([
         matrix[topX][topY], 
         matrix[topX + size][topY], 
         matrix[topX + size][topY + size],
         matrix[topX][topY + size] 
-    ]) + rd), 1, 16);
-	console.log("square",index.x,index.y,matrix[index.x][index.y]);
+    ]) + rd, 1, 16);
+
 }
 
 // Fonction pour les diamants
 function diamond(topX, topY, size) {
+
+    size = size - 1;
     let tl = matrix[topX][topY];
     let tr = matrix[topX + size][topY]; 
     let br = matrix[topX + size][topY + size];
     let bl = matrix[topX][topY + size];
-    let center = matrix[Math.floor((size) / 2 + topX) ][Math.floor((size) / 2 + topY)];
+    let center = matrix[ topX + (size)/2 ][ topY + (size)/2];
 
     let rd = getRdm();
-	let x = Math.floor((size) / 2 + topX);
+	let x = topX + (size)/2;
 	let y = topY;
-	console.log("diamond",x,y,matrix[x][y]);
-    matrix[x][y] = clamp(calculateAverage([tl,tr,center]) + rd,1,16);
+    if(matrix[x][y] == 0) {
+        matrix[x][y] = clamp(calculateAverage([tl,tr,center]) + rd,1,16);
+    }
     
     rd = getRdm();
 	x = topX + size;
-	y = Math.floor((size) / 2 + topY);
-    matrix[x][y] = clamp(calculateAverage([tr,br,center]) + rd,1,16);
-	console.log("diamond",x,y,matrix[x][y]);
+	y = topY + (size)/2;
+    if(matrix[x][y] == 0) {
+        matrix[x][y] = clamp(calculateAverage([tr,br,center]) + rd,1,16);
+    }
+ 
+
    
     rd = getRdm();
-	x = Math.floor((size) / 2 + topX);
+	x = topX + (size)/2;
 	y = topY + size;
-	console.log("diamond",x,y,matrix[x][y]);
-    matrix[x][y] = clamp(calculateAverage([br,bl,center]) + rd,1,16);
+
+   if(matrix[x][y] == 0) {
+        matrix[x][y] = clamp(calculateAverage([bl,br,center]) + rd,1,16);
+    }
 
     rd = getRdm();
 	x = topX;
-	y = Math.floor((size) / 2 + topY);
-	console.log("diamond",x,y,matrix[x][y]);
-    matrix[x][y] = clamp(calculateAverage([bl,tl,center]) + rd,1,16);
+	y = topY + (size)/2;
+
+   if(matrix[x][y] == 0) {
+        matrix[x][y] = clamp(calculateAverage([tl,bl,center]) + rd,1,16);
+    }
 }
 
 // Fonction pour changer la tuile
@@ -251,19 +261,19 @@ function calculateAverage(array) {
     for (let i = 0; i < array.length; i++) {
         sum += array[i];
     }
-    return Math.floor(sum / array.length);
+    return sum / array.length;
 }
 
 
 // Fonction pour obtenir un nombre aléatoire
 function getRdm() {
-    return Math.floor(Math.random() * (current_range_random[1] - current_range_random[0]) + current_range_random[0]);
+    return Math.random() * (current_range_random[1] - current_range_random[0]) + current_range_random[0];
 }
 
 
 // Fonction pour garder une valeur entre deux bornes
 function clamp(value, min, max) {
-    return Math.floor(Math.min(Math.max(value, min), max));
+    return Math.min(Math.max(value, min), max);
 }
 
 // Fonction pour générer un terrain aléatoire

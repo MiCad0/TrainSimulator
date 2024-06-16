@@ -18,12 +18,12 @@
 /*------------------------------------------------------------*/
 
 // Nombre de cases par défaut du simulateur
-const LARGEUR_PLATEAU	= 30;
-const HAUTEUR_PLATEAU	= 15;
+const LARGEUR_PLATEAU	= 139;
+const HAUTEUR_PLATEAU	= 139;
 
 // Dimensions des cases par défaut en pixels
-const LARGEUR_CASE	= 35;
-const HAUTEUR_CASE	= 40;
+const LARGEUR_CASE	= 1050/30;
+const HAUTEUR_CASE	= 1050/30;
 
 
 /*------------------------------------------------------------*/
@@ -50,10 +50,40 @@ class Type_de_case{
 	// NOTE: faisant la jonction de vertical à horizontal en allant vers le bas puis vers la droite (ou de horizontal à vertical en allant de gauche vers le haut)
 	static Rail_bas_vers_droite		= new Type_de_case('rail bas vers droite');
 
-	constructor(nom) {
-		this.nom = nom;
-	}
+	static Terrain1					= new Type_de_case('1');
+
+	static Terrain2					= new Type_de_case('2');
+
+	static Terrain3					= new Type_de_case('3');
+
+	static Terrain4					= new Type_de_case('4');
+
+	static Terrain5					= new Type_de_case('5');
+
+	static Terrain6					= new Type_de_case('6');
+
+	static Terrain7					= new Type_de_case('7');
+
+	static Terrain8					= new Type_de_case('8');
+
+	static Terrain9					= new Type_de_case('9');
+
+	static Terrain10					= new Type_de_case('10');
+
+	static Terrain11					= new Type_de_case('11');
+
+	static Terrain12					= new Type_de_case('12');
+
+	static Terrain13					= new Type_de_case('13');
+
+	static Terrain14					= new Type_de_case('14');
+
+	static Terrain15					= new Type_de_case('15');
+
+	static Terrain16					= new Type_de_case('16');
 }
+
+
 
 
 
@@ -89,6 +119,55 @@ IMAGE_RAIL_HAUT_VERS_DROITE.src = 'images/rail-haut-vers-droite.png';
 
 const IMAGE_WAGON = new Image();
 IMAGE_WAGON.src = 'images/wagon.png';
+
+const IMAGE_TERRAIN1 = new Image();
+IMAGE_TERRAIN1.src = 'images/1.png';
+
+const IMAGE_TERRAIN2 = new Image();
+IMAGE_TERRAIN2.src = 'images/2.png';
+
+const IMAGE_TERRAIN3 = new Image();
+IMAGE_TERRAIN3.src = 'images/3.png';
+
+const IMAGE_TERRAIN4 = new Image();
+IMAGE_TERRAIN4.src = 'images/4.png';
+
+const IMAGE_TERRAIN5 = new Image();
+IMAGE_TERRAIN5.src = 'images/5.png';
+
+const IMAGE_TERRAIN6 = new Image();
+IMAGE_TERRAIN6.src = 'images/6.png';
+
+const IMAGE_TERRAIN7 = new Image();
+IMAGE_TERRAIN7.src = 'images/7.png';
+
+const IMAGE_TERRAIN8 = new Image();
+IMAGE_TERRAIN8.src = 'images/8.png';
+
+const IMAGE_TERRAIN9 = new Image();
+IMAGE_TERRAIN9.src = 'images/9.png';
+
+const IMAGE_TERRAIN10 = new Image();
+IMAGE_TERRAIN10.src = 'images/10.png';
+
+const IMAGE_TERRAIN11 = new Image();
+IMAGE_TERRAIN11.src = 'images/11.png';
+
+const IMAGE_TERRAIN12 = new Image();
+IMAGE_TERRAIN12.src = 'images/12.png';
+
+const IMAGE_TERRAIN13 = new Image();
+IMAGE_TERRAIN13.src = 'images/13.png';
+
+const IMAGE_TERRAIN14 = new Image();
+IMAGE_TERRAIN14.src = 'images/14.png';
+
+const IMAGE_TERRAIN15 = new Image();
+IMAGE_TERRAIN15.src = 'images/15.png';
+
+const IMAGE_TERRAIN16 = new Image();
+IMAGE_TERRAIN16.src = 'images/16.png';
+
 
 
 /************************************************************/
@@ -127,11 +206,11 @@ class Plateau{
 				this.cases[x][y] = Type_de_case.Foret;
 			}
 		}
-		this.trains = {};
+		this.trains = [];
 	}
 
 	ajouterTrain(x, y, train){
-		this.trains[[x,y]] = train;
+		this.trains.push(train);
 	}
 }
 
@@ -160,16 +239,22 @@ class Train{
 	}
 
 	avancer(x, y){
+        if(x<0)
+            x = plateau.largeur - 1;
+        if(x>=plateau.largeur)
+            x = 0;
+        if(y<0)
+            y = plateau.hauteur - 1;
+        if(y>=plateau.hauteur)
+            y = 0;
 		this.oldX = this.x;
 		this.oldY = this.y;
 		this.x = x;
 		this.y = y;
-		plateau.trains[[this.oldX, this.oldY]] = undefined;
-		plateau.trains[[this.x, this.y]] = this;
 		if(this.nbWagon > 0){
 			this.next.avancer(this.oldX, this.oldY);
 		}
-	}
+    }
 }
 
 
@@ -187,21 +272,31 @@ function image_of_case(type_de_case){
 		case Type_de_case.Rail_haut_vers_droite	: return IMAGE_RAIL_HAUT_VERS_DROITE;
 		case Type_de_case.Rail_droite_vers_bas	: return IMAGE_RAIL_DROITE_VERS_BAS;
 		case Type_de_case.Rail_bas_vers_droite	: return IMAGE_RAIL_BAS_VERS_DROITE;
+		case Type_de_case.Terrain1				: return IMAGE_TERRAIN1;
+		case Type_de_case.Terrain2				: return IMAGE_TERRAIN2;
+		case Type_de_case.Terrain3				: return IMAGE_TERRAIN3;
+		case Type_de_case.Terrain4				: return IMAGE_TERRAIN4;
+		case Type_de_case.Terrain5				: return IMAGE_TERRAIN5;
+		case Type_de_case.Terrain6				: return IMAGE_TERRAIN6;
+		case Type_de_case.Terrain7				: return IMAGE_TERRAIN7;
+		case Type_de_case.Terrain8				: return IMAGE_TERRAIN8;
+		case Type_de_case.Terrain9				: return IMAGE_TERRAIN9;
+		case Type_de_case.Terrain10				: return IMAGE_TERRAIN10;
+		case Type_de_case.Terrain11				: return IMAGE_TERRAIN11;
+		case Type_de_case.Terrain12				: return IMAGE_TERRAIN12;
+		case Type_de_case.Terrain13				: return IMAGE_TERRAIN13;
+		case Type_de_case.Terrain14				: return IMAGE_TERRAIN14;
+		case Type_de_case.Terrain15				: return IMAGE_TERRAIN15;
+		case Type_de_case.Terrain16				: return IMAGE_TERRAIN16;
     }
 }
 
 
 function dessine_case(contexte, plateau, x, y){
 	const la_case = plateau.cases[x][y];
-
-	// NOTE: à améliorer
-
 	let image_a_afficher = image_of_case(la_case);
-	
-	const realx = (y - x) * LARGEUR_CASE + (LARGEUR_PLATEAU * LARGEUR_CASE) / 2;
-	const realy = (y + x) * HAUTEUR_CASE / 2;
 	// Affiche l'image concernée
-	contexte.drawImage(image_a_afficher, realx, realy, LARGEUR_CASE, HAUTEUR_CASE);
+	contexte.drawImage(image_a_afficher, x * LARGEUR_CASE, y * HAUTEUR_CASE, LARGEUR_CASE, HAUTEUR_CASE);
 }
 
 function dessine_plateau(page, plateau){
@@ -211,8 +306,6 @@ function dessine_plateau(page, plateau){
 			dessine_case(page, plateau, x, y);
 		}
 	}
-
-	// NOTE: à compléter…
 }
 
 function peindre(x, y, typeCase, plateau){
@@ -277,14 +370,14 @@ function poserTrain(x, y, plateau, train){
 			train.x = x;
 			train.y = y;
 			plateau.ajouterTrain(x, y, train);
-			dessinerTrain(plateau, x, y);
+			dessinerTrain(plateau, train);
 			let tempTrain = train;
 			while(tempTrain.nbWagon > 0){
 				tempTrain = tempTrain.next;
 				plateau.ajouterTrain(--x, y, tempTrain);
 				tempTrain.x = x;
 				tempTrain.y = y;
-				dessinerTrain(plateau, x, y);
+				dessinerTrain(plateau, tempTrain);
 			}
 			break;
 		default:
@@ -292,17 +385,23 @@ function poserTrain(x, y, plateau, train){
 	}
 }
 
-function dessinerTrain(plateau, x, y){
-	let train = plateau.trains[[x,y]];
-		
-	const realx = (y - x) * LARGEUR_CASE + (LARGEUR_PLATEAU * LARGEUR_CASE) / 2;
-	const realy = (y + x) * HAUTEUR_CASE / 2;
-	contexte.drawImage(train.image, realx, realy, LARGEUR_CASE, HAUTEUR_CASE);
-	dessine_case(contexte, plateau, train.oldX, train.oldY);
-	while(train.nbWagon > 0){
-		train = train.next;
-		contexte.drawImage(train.image, train.x * LARGEUR_CASE + (LARGEUR_PLATEAU * LARGEUR_CASE) / 2, train.y * HAUTEUR_CASE / 2, LARGEUR_CASE, HAUTEUR_CASE);
+function dessinerTrain(plateau, train){
+	let x = train.x;
+	let y = train.y;
+	contexte.drawImage(train.image, x * LARGEUR_CASE, y * HAUTEUR_CASE, LARGEUR_CASE, HAUTEUR_CASE);
+	let nbTchou = 0;
+	plateau.trains.forEach((tchou) => {
+		if(tchou !== undefined && tchou.x === train.oldX && tchou.y === train.oldY){
+			nbTchou++;
+			return;
+		}
+	});
+	if(nbTchou === 0){
 		dessine_case(contexte, plateau, train.oldX, train.oldY);
+	}
+	if(train.nbWagon > 0){
+		contexte.drawImage(train.next.image, train.next.x * LARGEUR_CASE, train.next.y * HAUTEUR_CASE, LARGEUR_CASE, HAUTEUR_CASE);
+		dessine_case(contexte, plateau, train.next.oldX, train.next.oldY);
 	}
 }
 
@@ -421,22 +520,8 @@ function tick(){
 			train.vector = [coord[0], coord[1]];
 			console.log(coord);
 			console.log(tmp);
-			if(train.x + coord[0] < 0){
-				train.x = plateau.largeur - 1;
-			}
-			else if(train.x + coord[0] >= plateau.largeur){
-				train.x = 0;
-			}
-			else if(train.y + coord[1] < 0){
-				train.y = plateau.hauteur - 1;
-			}
-			else if(train.y + coord[1] >= plateau.hauteur){
-				train.y = 0;
-			}
-			else{
-				train.avancer(train.x + coord[0], train.y + coord[1]);
-				dessinerTrain(plateau, train.x, train.y);
-			}
+			train.avancer(train.x + coord[0], train.y + coord[1]);
+			dessinerTrain(plateau, train);
 		}
 	});
 }
@@ -451,10 +536,9 @@ function exploserTrain(train){
 		exploserTrain(train.next);
 	}
 	if(train.isLoco){
-		plateau.trains[[train.x + train.vector[0], train.y + train.vector[1]]] = undefined;
+		plateau.trains.indexOf(train) = undefined;
 	}
 	dessine_case(contexte, plateau, train.x, train.y);
-	plateau.trains[[train.x, train.y]] = undefined;
 	train.next = undefined;
 	train = undefined;
 }
@@ -463,11 +547,52 @@ function exploserTrain(train){
 // Auditeurs
 /************************************************************/
 
-window.addEventListener('click', selectionnerCase);
-document.addEventListener('contextmenu', function(e) {
-    e.preventDefault(); // Pour empêcher l'affichage du menu contextuel par défaut
+window.addEventListener('click', selectionnerCase);let keys = {};
+
+window.addEventListener('keydown', (event) => {
+    keys[event.key] = true;
+
+    if(keys['ArrowLeft']){
+        plateau.cases.unshift(plateau.cases.pop());
+        dessine_plateau(contexte, plateau);
+		plateau.trains.forEach((train) => {
+			train.avancer(train.x + 1, train.y);
+			dessinerTrain(plateau, train);
+		});
+    }
+    if(keys['ArrowRight']){
+        plateau.cases.push(plateau.cases.shift());
+		dessine_plateau(contexte, plateau);
+		plateau.trains.forEach((train) => {
+			train.avancer(train.x - 1, train.y);
+			dessinerTrain(plateau, train);
+		});
+    }
+    if(keys['ArrowUp']){
+        plateau.cases.forEach((colonne) => {
+            colonne.unshift(colonne.pop());
+        });
+		dessine_plateau(contexte, plateau);
+		plateau.trains.forEach((train) => {
+			train.avancer(train.x, train.y + 1);
+			dessinerTrain(plateau, train);
+		});
+    }
+    if(keys['ArrowDown']){
+        plateau.cases.forEach((colonne) => {
+            colonne.push(colonne.shift());
+        });
+		dessine_plateau(contexte, plateau);
+		plateau.trains.forEach((train) => {
+			train.avancer(train.x, train.y - 1);
+			dessinerTrain(plateau, train);
+		});
+    }
 });
 
+window.addEventListener('keyup', (event) => {
+    keys[event.key] = false;
+});
 
 
 /************************************************************/
@@ -512,7 +637,7 @@ function cree_plateau_initial(plateau){
 	// Plan d'eau
 	for(let x = 22; x <= 27; x++){
 		for(let y = 2; y <= 5; y++){
-			plateau.cases[x][y] = Type_de_case.Eau;
+			plateau.cases[x][y] = Type_de_case.Terrain3;
 		}
 	}
 
