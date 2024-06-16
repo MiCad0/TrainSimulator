@@ -17,14 +17,23 @@
 // Dimensions du plateau
 /*------------------------------------------------------------*/
 
+// Définir la taille de la matrice
+let dispersion = 16;
+let step = 1;
+const size = 7;
+
 // Nombre de cases par défaut du simulateur
-const LARGEUR_PLATEAU	= 139;
-const HAUTEUR_PLATEAU	= 139;
+const LARGEUR_PLATEAU	= 2**size + 1;
+const HAUTEUR_PLATEAU	= 2**size + 1;
 
 // Dimensions des cases par défaut en pixels
 const LARGEUR_CASE	= 1050/30;
 const HAUTEUR_CASE	= 1050/30;
 
+
+const randomRange = [-4,4];
+let current_range_random = randomRange;
+const shrinkCoef = 0.5;
 
 /*------------------------------------------------------------*/
 // Types des cases
@@ -81,6 +90,26 @@ class Type_de_case{
 	static Terrain15					= new Type_de_case('15');
 
 	static Terrain16					= new Type_de_case('16');
+
+	constructor(nom){
+		this.nom = nom;
+		this.valeur = 0;
+	}
+
+	setValeur(valeur){
+		this.valeur = valeur;
+		this.nom = Math.round(valeur).toString();
+	}
+
+	getValeur(){
+		return this.valeur;
+	}
+
+	clone(){
+		let res = new Type_de_case(this.nom);
+		res.valeur = this.valeur;
+		return res;
+	}
 }
 
 
@@ -203,9 +232,20 @@ class Plateau{
 		for (let x = 0; x < this.largeur; x++) {
 			this.cases[x] = [];
 			for (let y = 0; y < this.hauteur; y++) {
-				this.cases[x][y] = Type_de_case.Foret;
+				this.cases[x][y] = Type_de_case.Foret.clone();
 			}
 		}
+
+		
+		// Initialisation des coins
+		this.cases[0][0].setValeur(getRandomHeight());
+		this.cases[0][HAUTEUR_PLATEAU - 1].setValeur(getRandomHeight());
+		this.cases[HAUTEUR_PLATEAU - 1][0].setValeur(getRandomHeight());
+		this.cases[HAUTEUR_PLATEAU - 1][HAUTEUR_PLATEAU - 1].setValeur(getRandomHeight());
+
+
+
+
 		this.trains = [];
 	}
 
@@ -262,32 +302,143 @@ class Train{
 // Méthodes
 /************************************************************/
 
+
+
+// Fonction pour obtenir une hauteur aléatoire
+function getRandomHeight() {
+    return Math.floor(Math.random() * 15)+1;
+}
+
+
+// Fonction pour baisser le coefficient de réduction
+function shrinkRangeRandom(size) {
+    current_range_random[0] = -dispersion * size/HAUTEUR_PLATEAU;
+    current_range_random[1] = dispersion * size/LARGEUR_PLATEAU;
+}
+
+
+// Fonction diamondSquare pour générer un terrain
+function diamondSquare(x, y, size) {
+	square(x,y,size);
+    diamond(x,y,size);
+    shrinkRangeRandom(size);
+	step++;
+    if (size > 4) {
+        diamondSquare(x,y,(size+1)/2);
+        diamondSquare(x + (size+1)/2 -1,y,(size+1)/2);
+        diamondSquare(x,y + (size+1)/2 -1,(size+1)/2);
+        diamondSquare(x + (size+1)/2 -1, y + (size+1)/2 - 1,(size+1)/2);
+    }
+}
+
+// Fonction pour les carrés
+function square(topX, topY, size) {
+    let rd = getRdm();
+    let index = {};
+    index.x = topX + (size-1)/2;
+    index.y = topY + (size-1)/2;
+
+    size = size - 1;
+    plateau.cases[index.x][index.y].setValeur(clamp(calculateAverage([
+        plateau.cases[topX][topY].getValeur(), 
+        plateau.cases[topX + size][topY].getValeur(), 
+        plateau.cases[topX + size][topY + size].getValeur(),
+        plateau.cases[topX][topY + size].getValeur() 
+    ]) + rd, 1, 16));
+
+}
+
+// Fonction pour les diamants
+function diamond(topX, topY, size) {
+
+    size = size - 1;
+    let tl = plateau.cases[topX][topY];
+    let tr = plateau.cases[topX + size][topY]; 
+    let br = plateau.cases[topX + size][topY + size];
+    let bl = plateau.cases[topX][topY + size];
+    let center = plateau.cases[ topX + (size)/2 ][ topY + (size)/2];
+
+    let rd = getRdm();
+	let x = topX + (size)/2;
+	let y = topY;
+    if(plateau.cases[x][y].getValeur() == 0) {
+        plateau.cases[x][y].setValeur(clamp(calculateAverage([tl,tr,center]) + rd,1,16));
+    }
+    
+    rd = getRdm();
+	x = topX + size;
+	y = topY + (size)/2;
+    if(plateau.cases[x][y].getValeur() == 0) {
+        plateau.cases[x][y].setValeur(clamp(calculateAverage([tr,br,center]) + rd,1,16));
+    }
+ 
+
+   
+    rd = getRdm();
+	x = topX + (size)/2;
+	y = topY + size;
+
+   if(plateau.cases[x][y].getValeur() == 0) {
+        plateau.cases[x][y].setValeur(clamp(calculateAverage([bl,br,center]) + rd,1,16));
+    }
+
+    rd = getRdm();
+	x = topX;
+	y = topY + (size)/2;
+
+   if(plateau.cases[x][y].getValeur() == 0) {
+        plateau.cases[x][y].setValeur(clamp(calculateAverage([tl,bl,center]) + rd,1,16));
+    }
+}
+
+
+// Fonction pour calculer la moyenne
+function calculateAverage(array) { 
+    let sum = 0;
+    for (let i = 0; i < array.length; i++) {
+        sum += array[i];
+    }
+    return sum / array.length;
+}
+
+// Fonction pour obtenir un nombre aléatoire
+function getRdm() {
+    return Math.random() * (current_range_random[1] - current_range_random[0]) + current_range_random[0];
+}
+
+
+// Fonction pour garder une valeur entre deux bornes
+function clamp(value, min, max) {
+    return Math.min(Math.max(value, min), max);
+}
+
+
 function image_of_case(type_de_case){
-	switch(type_de_case){
-		case Type_de_case.Foret					: return IMAGE_FORET;
-		case Type_de_case.Eau					: return IMAGE_EAU;
-		case Type_de_case.Rail_horizontal		: return IMAGE_RAIL_HORIZONTAL;
-		case Type_de_case.Rail_vertical			: return IMAGE_RAIL_VERTICAL;
-		case Type_de_case.Rail_droite_vers_haut	: return IMAGE_RAIL_DROITE_VERS_HAUT;
-		case Type_de_case.Rail_haut_vers_droite	: return IMAGE_RAIL_HAUT_VERS_DROITE;
-		case Type_de_case.Rail_droite_vers_bas	: return IMAGE_RAIL_DROITE_VERS_BAS;
-		case Type_de_case.Rail_bas_vers_droite	: return IMAGE_RAIL_BAS_VERS_DROITE;
-		case Type_de_case.Terrain1				: return IMAGE_TERRAIN1;
-		case Type_de_case.Terrain2				: return IMAGE_TERRAIN2;
-		case Type_de_case.Terrain3				: return IMAGE_TERRAIN3;
-		case Type_de_case.Terrain4				: return IMAGE_TERRAIN4;
-		case Type_de_case.Terrain5				: return IMAGE_TERRAIN5;
-		case Type_de_case.Terrain6				: return IMAGE_TERRAIN6;
-		case Type_de_case.Terrain7				: return IMAGE_TERRAIN7;
-		case Type_de_case.Terrain8				: return IMAGE_TERRAIN8;
-		case Type_de_case.Terrain9				: return IMAGE_TERRAIN9;
-		case Type_de_case.Terrain10				: return IMAGE_TERRAIN10;
-		case Type_de_case.Terrain11				: return IMAGE_TERRAIN11;
-		case Type_de_case.Terrain12				: return IMAGE_TERRAIN12;
-		case Type_de_case.Terrain13				: return IMAGE_TERRAIN13;
-		case Type_de_case.Terrain14				: return IMAGE_TERRAIN14;
-		case Type_de_case.Terrain15				: return IMAGE_TERRAIN15;
-		case Type_de_case.Terrain16				: return IMAGE_TERRAIN16;
+	switch(type_de_case.nom){
+		case Foret					: return IMAGE_FORET;
+		case Eau					: return IMAGE_EAU;
+		case Rail_horizontal		: return IMAGE_RAIL_HORIZONTAL;
+		case Rail_vertical			: return IMAGE_RAIL_VERTICAL;
+		case Rail_droite_vers_haut	: return IMAGE_RAIL_DROITE_VERS_HAUT;
+		case Rail_haut_vers_droite	: return IMAGE_RAIL_HAUT_VERS_DROITE;
+		case Rail_droite_vers_bas	: return IMAGE_RAIL_DROITE_VERS_BAS;
+		case Rail_bas_vers_droite	: return IMAGE_RAIL_BAS_VERS_DROITE;
+		case 1						: return IMAGE_TERRAIN1;
+		case 2						: return IMAGE_TERRAIN2;
+		case 3						: return IMAGE_TERRAIN3;
+		case 4						: return IMAGE_TERRAIN4;
+		case 5						: return IMAGE_TERRAIN5;
+		case 6						: return IMAGE_TERRAIN6;
+		case 7						: return IMAGE_TERRAIN7;
+		case 8						: return IMAGE_TERRAIN8;
+		case 9						: return IMAGE_TERRAIN9;
+		case 10						: return IMAGE_TERRAIN10;
+		case 11						: return IMAGE_TERRAIN11;
+		case 12						: return IMAGE_TERRAIN12;
+		case 13						: return IMAGE_TERRAIN13;
+		case 14						: return IMAGE_TERRAIN14;
+		case 15						: return IMAGE_TERRAIN15;
+		case 16						: return IMAGE_TERRAIN16;
     }
 }
 
@@ -328,8 +479,8 @@ function selectionnerCase(event){
 		if(event.target.nodeName === 'CANVAS'){
 			let x = Math.floor(event.offsetX / LARGEUR_CASE);
 			let y = Math.floor(event.offsetY / HAUTEUR_CASE);
+			console.log(plateau.cases[x][y]);
 			let newCase = getTypeFromBouton(currentCase);
-			console.log(typeof newCase);
 			if(typeof newCase === 'number'){
 				poserTrain(x, y, plateau, new Train(newCase, true));
 			}
@@ -345,7 +496,6 @@ function selectionnerCase(event){
 		}
 	}
 	else{
-		console.log(event.target);
 		if(event.target.nodeName === 'INPUT'){
 			currentCase = event.target;
 			event.target.disabled = true;
@@ -599,6 +749,11 @@ window.addEventListener('keyup', (event) => {
 // Plateau de jeu initial
 /************************************************************/
 
+
+// NOTE : ne pas modifier le plateau initial
+function cree_plateau_initial(plateau){
+	diamondSquare(0, 0, LARGEUR_PLATEAU);
+}
 
 /************************************************************/
 // Fonction principale

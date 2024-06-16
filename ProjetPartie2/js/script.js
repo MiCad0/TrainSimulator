@@ -174,7 +174,6 @@ canvas.addEventListener("click", function (evt) {
 });
 
 // Fonction diamondSquare pour générer un terrain
-
 function diamondSquare(x, y, size) {
 	square(x,y,size);
     diamond(x,y,size);
