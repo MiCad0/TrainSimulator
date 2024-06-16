@@ -294,11 +294,14 @@ function poserTrain(x, y, plateau, train){
 
 function dessinerTrain(plateau, x, y){
 	let train = plateau.trains[[x,y]];
-	contexte.drawImage(train.image, x * LARGEUR_CASE, y * HAUTEUR_CASE, LARGEUR_CASE, HAUTEUR_CASE);
+		
+	const realx = (y - x) * LARGEUR_CASE + (LARGEUR_PLATEAU * LARGEUR_CASE) / 2;
+	const realy = (y + x) * HAUTEUR_CASE / 2;
+	contexte.drawImage(train.image, realx, realy, LARGEUR_CASE, HAUTEUR_CASE);
 	dessine_case(contexte, plateau, train.oldX, train.oldY);
 	while(train.nbWagon > 0){
 		train = train.next;
-		contexte.drawImage(train.image, train.x * LARGEUR_CASE, train.y * HAUTEUR_CASE, LARGEUR_CASE, HAUTEUR_CASE);
+		contexte.drawImage(train.image, train.x * LARGEUR_CASE + (LARGEUR_PLATEAU * LARGEUR_CASE) / 2, train.y * HAUTEUR_CASE / 2, LARGEUR_CASE, HAUTEUR_CASE);
 		dessine_case(contexte, plateau, train.oldX, train.oldY);
 	}
 }
@@ -418,10 +421,19 @@ function tick(){
 			train.vector = [coord[0], coord[1]];
 			console.log(coord);
 			console.log(tmp);
-			if(train.x + coord[0] < 0 || train.y + coord[1] < 0 || train.x + coord[0] >= plateau.largeur || train.y + coord[1] >= plateau.hauteur){
-				console.log("Boom");
-				exploserTrain(train);
-			}else{
+			if(train.x + coord[0] < 0){
+				train.x = plateau.largeur - 1;
+			}
+			else if(train.x + coord[0] >= plateau.largeur){
+				train.x = 0;
+			}
+			else if(train.y + coord[1] < 0){
+				train.y = plateau.hauteur - 1;
+			}
+			else if(train.y + coord[1] >= plateau.hauteur){
+				train.y = 0;
+			}
+			else{
 				train.avancer(train.x + coord[0], train.y + coord[1]);
 				dessinerTrain(plateau, train.x, train.y);
 			}
@@ -452,6 +464,10 @@ function exploserTrain(train){
 /************************************************************/
 
 window.addEventListener('click', selectionnerCase);
+document.addEventListener('contextmenu', function(e) {
+    e.preventDefault(); // Pour empêcher l'affichage du menu contextuel par défaut
+});
+
 
 
 /************************************************************/
