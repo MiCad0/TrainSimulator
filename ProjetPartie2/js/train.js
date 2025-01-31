@@ -3,7 +3,7 @@
  * Université Sorbonne Paris Nord, Programmation Web
  * Auteurs                       : Étienne André
  * Création                      : 2023/12/11
- * Dernière modification         : 2024/04/25
+ * Dernière modification         : 2024/06/16 par Denis Linde et Timothée M'Bassidje
  */
 /************************************************************/
 
@@ -238,10 +238,11 @@ class Plateau{
 
 		
 		// Initialisation des coins
-		this.cases[0][0].setValeur(getRandomHeight());
-		this.cases[0][HAUTEUR_PLATEAU - 1].setValeur(getRandomHeight());
-		this.cases[HAUTEUR_PLATEAU - 1][0].setValeur(getRandomHeight());
-		this.cases[HAUTEUR_PLATEAU - 1][HAUTEUR_PLATEAU - 1].setValeur(getRandomHeight());
+		const defaultHeight = getRandomHeight();
+		this.cases[0][0].setValeur(defaultHeight);
+		this.cases[0][HAUTEUR_PLATEAU - 1].setValeur(defaultHeight);
+		this.cases[HAUTEUR_PLATEAU - 1][0].setValeur(defaultHeight);
+		this.cases[HAUTEUR_PLATEAU - 1][HAUTEUR_PLATEAU - 1].setValeur(defaultHeight);
 
 
 
@@ -352,11 +353,11 @@ function square(topX, topY, size) {
 function diamond(topX, topY, size) {
 
     size = size - 1;
-    let tl = plateau.cases[topX][topY];
-    let tr = plateau.cases[topX + size][topY]; 
-    let br = plateau.cases[topX + size][topY + size];
-    let bl = plateau.cases[topX][topY + size];
-    let center = plateau.cases[ topX + (size)/2 ][ topY + (size)/2];
+    let tl = plateau.cases[topX][topY].getValeur();
+    let tr = plateau.cases[topX + size][topY].getValeur(); 
+    let br = plateau.cases[topX + size][topY + size].getValeur();
+    let bl = plateau.cases[topX][topY + size].getValeur();
+    let center = plateau.cases[ topX + (size)/2 ][ topY + (size)/2].getValeur();
 
     let rd = getRdm();
 	let x = topX + (size)/2;
@@ -415,30 +416,30 @@ function clamp(value, min, max) {
 
 function image_of_case(type_de_case){
 	switch(type_de_case.nom){
-		case Foret					: return IMAGE_FORET;
-		case Eau					: return IMAGE_EAU;
-		case Rail_horizontal		: return IMAGE_RAIL_HORIZONTAL;
-		case Rail_vertical			: return IMAGE_RAIL_VERTICAL;
-		case Rail_droite_vers_haut	: return IMAGE_RAIL_DROITE_VERS_HAUT;
-		case Rail_haut_vers_droite	: return IMAGE_RAIL_HAUT_VERS_DROITE;
-		case Rail_droite_vers_bas	: return IMAGE_RAIL_DROITE_VERS_BAS;
-		case Rail_bas_vers_droite	: return IMAGE_RAIL_BAS_VERS_DROITE;
-		case 1						: return IMAGE_TERRAIN1;
-		case 2						: return IMAGE_TERRAIN2;
-		case 3						: return IMAGE_TERRAIN3;
-		case 4						: return IMAGE_TERRAIN4;
-		case 5						: return IMAGE_TERRAIN5;
-		case 6						: return IMAGE_TERRAIN6;
-		case 7						: return IMAGE_TERRAIN7;
-		case 8						: return IMAGE_TERRAIN8;
-		case 9						: return IMAGE_TERRAIN9;
-		case 10						: return IMAGE_TERRAIN10;
-		case 11						: return IMAGE_TERRAIN11;
-		case 12						: return IMAGE_TERRAIN12;
-		case 13						: return IMAGE_TERRAIN13;
-		case 14						: return IMAGE_TERRAIN14;
-		case 15						: return IMAGE_TERRAIN15;
-		case 16						: return IMAGE_TERRAIN16;
+		case 'Foret': return IMAGE_FORET;
+		case 'Eau': return IMAGE_EAU;
+		case 'rail horizontal': return IMAGE_RAIL_HORIZONTAL;
+		case 'rail vertical': return IMAGE_RAIL_VERTICAL;
+		case 'rail droite vers haut': return IMAGE_RAIL_DROITE_VERS_HAUT;
+		case 'rail haut vers droite': return IMAGE_RAIL_HAUT_VERS_DROITE;
+		case 'rail droite vers bas': return IMAGE_RAIL_DROITE_VERS_BAS;
+		case 'rail bas vers droite': return IMAGE_RAIL_BAS_VERS_DROITE;
+		case '1': return IMAGE_TERRAIN1;
+		case '2': return IMAGE_TERRAIN2;
+		case '3': return IMAGE_TERRAIN3;
+		case '4': return IMAGE_TERRAIN4;
+		case '5': return IMAGE_TERRAIN5;
+		case '6': return IMAGE_TERRAIN6;
+		case '7': return IMAGE_TERRAIN7;
+		case '8': return IMAGE_TERRAIN8;
+		case '9': return IMAGE_TERRAIN9;
+		case '10': return IMAGE_TERRAIN10;
+		case '11': return IMAGE_TERRAIN11;
+		case '12': return IMAGE_TERRAIN12;
+		case '13': return IMAGE_TERRAIN13;
+		case '14': return IMAGE_TERRAIN14;
+		case '15': return IMAGE_TERRAIN15;
+		case '16': return IMAGE_TERRAIN16;
     }
 }
 
@@ -479,7 +480,6 @@ function selectionnerCase(event){
 		if(event.target.nodeName === 'CANVAS'){
 			let x = Math.floor(event.offsetX / LARGEUR_CASE);
 			let y = Math.floor(event.offsetY / HAUTEUR_CASE);
-			console.log(plateau.cases[x][y]);
 			let newCase = getTypeFromBouton(currentCase);
 			if(typeof newCase === 'number'){
 				poserTrain(x, y, plateau, new Train(newCase, true));
@@ -535,24 +535,13 @@ function poserTrain(x, y, plateau, train){
 	}
 }
 
-function dessinerTrain(plateau, train){
-	let x = train.x;
-	let y = train.y;
-	contexte.drawImage(train.image, x * LARGEUR_CASE, y * HAUTEUR_CASE, LARGEUR_CASE, HAUTEUR_CASE);
-	let nbTchou = 0;
-	plateau.trains.forEach((tchou) => {
-		if(tchou !== undefined && tchou.x === train.oldX && tchou.y === train.oldY){
-			nbTchou++;
-			return;
-		}
+function dessinerTrain(plateau){
+	let context = document.getElementById('simulateur').getContext("2d");
+	dessine_plateau(context, plateau);
+	plateau.trains.forEach((train) => {
+		if(train !== undefined)
+			context.drawImage(train.image, train.x * LARGEUR_CASE, train.y * HAUTEUR_CASE, LARGEUR_CASE, HAUTEUR_CASE);
 	});
-	if(nbTchou === 0){
-		dessine_case(contexte, plateau, train.oldX, train.oldY);
-	}
-	if(train.nbWagon > 0){
-		contexte.drawImage(train.next.image, train.next.x * LARGEUR_CASE, train.next.y * HAUTEUR_CASE, LARGEUR_CASE, HAUTEUR_CASE);
-		dessine_case(contexte, plateau, train.next.oldX, train.next.oldY);
-	}
 }
 
 function getTypeFromBouton(bouton){
@@ -686,7 +675,7 @@ function exploserTrain(train){
 		exploserTrain(train.next);
 	}
 	if(train.isLoco){
-		plateau.trains.indexOf(train) = undefined;
+		plateau.trains[plateau.trains.indexOf(train)] = undefined;
 	}
 	dessine_case(contexte, plateau, train.x, train.y);
 	train.next = undefined;
@@ -706,6 +695,8 @@ window.addEventListener('keydown', (event) => {
         plateau.cases.unshift(plateau.cases.pop());
         dessine_plateau(contexte, plateau);
 		plateau.trains.forEach((train) => {
+			if(train === undefined)
+				return;
 			train.avancer(train.x + 1, train.y);
 			dessinerTrain(plateau, train);
 		});
@@ -714,6 +705,8 @@ window.addEventListener('keydown', (event) => {
         plateau.cases.push(plateau.cases.shift());
 		dessine_plateau(contexte, plateau);
 		plateau.trains.forEach((train) => {
+			if(train === undefined)
+				return;
 			train.avancer(train.x - 1, train.y);
 			dessinerTrain(plateau, train);
 		});
@@ -724,6 +717,8 @@ window.addEventListener('keydown', (event) => {
         });
 		dessine_plateau(contexte, plateau);
 		plateau.trains.forEach((train) => {
+			if(train === undefined)
+				return;
 			train.avancer(train.x, train.y + 1);
 			dessinerTrain(plateau, train);
 		});
@@ -734,6 +729,8 @@ window.addEventListener('keydown', (event) => {
         });
 		dessine_plateau(contexte, plateau);
 		plateau.trains.forEach((train) => {
+			if(train === undefined)
+				return;
 			train.avancer(train.x, train.y - 1);
 			dessinerTrain(plateau, train);
 		});

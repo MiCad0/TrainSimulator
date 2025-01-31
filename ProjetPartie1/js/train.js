@@ -3,7 +3,7 @@
  * Université Sorbonne Paris Nord, Programmation Web
  * Auteurs                       : Étienne André
  * Création                      : 2023/12/11
- * Dernière modification         : 2024/04/25
+ * Dernière modification         : 2024/06/16 par Denis Linde et Timothée M'Bassidje
  */
 /************************************************************/
 
@@ -131,6 +131,8 @@ class Plateau{
 	}
 
 	ajouterTrain(x, y, train){
+		train.x = x;
+		train.y = y;
 		this.trains.push(train);
 	}
 }
@@ -142,8 +144,8 @@ class Plateau{
 
 class Train{
 	constructor(nbWagon, isLoco){
-		this.x = -1;
-		this.y = -1;
+		this.x = 0;
+		this.y = 0;
 		this.oldX = 0;
 		this.oldY = 0;
 		if(isLoco){
@@ -160,6 +162,7 @@ class Train{
 	}
 
 	avancer(x, y){
+		console.log(this);
 		this.oldX = this.x;
 		this.oldY = this.y;
 		this.x = x;
@@ -277,8 +280,6 @@ function poserTrain(x, y, plateau, train){
 			while(tempTrain.nbWagon > 0){
 				tempTrain = tempTrain.next;
 				plateau.ajouterTrain(--x, y, tempTrain);
-				tempTrain.x = x;
-				tempTrain.y = y;
 				dessinerTrain(plateau, tempTrain);
 			}
 			break;
@@ -287,24 +288,13 @@ function poserTrain(x, y, plateau, train){
 	}
 }
 
-function dessinerTrain(plateau, train){
-	let x = train.x;
-	let y = train.y;
-	contexte.drawImage(train.image, x * LARGEUR_CASE, y * HAUTEUR_CASE, LARGEUR_CASE, HAUTEUR_CASE);
-	let nbTchou = 0;
-	plateau.trains.forEach((tchou) => {
-		if(tchou !== undefined && tchou.x === train.oldX && tchou.y === train.oldY){
-			nbTchou++;
-			return;
-		}
+function dessinerTrain(plateau){
+	let context = document.getElementById('simulateur').getContext("2d");
+	dessine_plateau(context, plateau);
+	plateau.trains.forEach((train) => {
+		if(train !== undefined)
+			context.drawImage(train.image, train.x * LARGEUR_CASE, train.y * HAUTEUR_CASE, LARGEUR_CASE, HAUTEUR_CASE);
 	});
-	if(nbTchou === 0){
-		dessine_case(contexte, plateau, train.oldX, train.oldY);
-	}
-	if(train.nbWagon > 0){
-		contexte.drawImage(train.next.image, train.next.x * LARGEUR_CASE, train.next.y * HAUTEUR_CASE, LARGEUR_CASE, HAUTEUR_CASE);
-		dessine_case(contexte, plateau, train.next.oldX, train.next.oldY);
-	}
 }
 
 function getTypeFromBouton(bouton){
@@ -443,7 +433,7 @@ function exploserTrain(train){
 		exploserTrain(train.next);
 	}
 	if(train.isLoco){
-		plateau.trains.indexOf(train) = undefined;
+		plateau.trains[plateau.trains.indexOf(train)] = undefined;
 	}
 	dessine_case(contexte, plateau, train.x, train.y);
 	train.next = undefined;
